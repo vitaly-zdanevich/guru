@@ -3,12 +3,12 @@
 
 EAPI=8
 
-inherit desktop xdg-utils
+inherit go-module desktop xdg-utils
 
 DESCRIPTION="Simple host script (in Go) for simple web extension to open videos in mpv"
 HOMEPAGE="https://github.com/Baldomo/open-in-mpv https://addons.mozilla.org/en-US/firefox/addon/iina-open-in-mpv"
-SRC_URI="https://github.com/Baldomo/open-in-mpv/releases/download/v${PV}/linux.tar -> ${P}.tar"
-S="${WORKDIR}"
+SRC_URI="https://github.com/Baldomo/open-in-mpv/releases/download/v${PV}/open-in-mpv_${PV}.tar.gz"
+S="${WORKDIR}/${PN}_${PV}"
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="~amd64"
@@ -17,11 +17,17 @@ RDEPEND="
 	media-video/mpv
 "
 
-QA_PREBUILT='usr/bin/open-in-mpv'
+src_compile() {
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 ego build -ldflags="-s -w -X main.Version=${PV}" -o ${PN} ./cmd/open-in-mpv/
+}
+
+src_test() {
+	ego test ./...
+}
 
 src_install() {
-	domenu open-in-mpv.desktop
-	dobin open-in-mpv
+	domenu scripts/open-in-mpv.desktop
+	dobin ${PN}
 }
 
 pkg_postinst() {
